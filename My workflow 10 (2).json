@@ -1,0 +1,1999 @@
+{
+  "name": "My workflow 10",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "f6ae4a8b-ab95-4aff-a4cd-aac382c2f659",
+      "name": "Daily Test Trigger 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-81e3-99f6-e8afe65bcbea",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "65c7e855-a2ed-4742-ba12-d512dd961475",
+      "name": "Fetch Performance History",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "8333f353-2616-4ec1-abd1-bc97c77f1671",
+      "name": "Merge Performance + Questions",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\nreturn $input.all();"
+      },
+      "id": "ccf1f09d-ede9-45f6-b786-b28f87e13200",
+      "name": "Analyze Performance And Todays Topics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "=📝 NDA Mock Test [{{ $('Parse Mock Question JSON').item.json.subject }}] - {{ $now.format('dd MMM yyyy') }}",
+        "message": "=<h2>Daily NDA Mock Question</h2>\n<p><strong>Topic covered today:</strong> {{ $('Parse Mock Question JSON').item.json.topicUsed }}<br>\n<strong>Subject:</strong> {{ $('Parse Mock Question JSON').item.json.subject }} &nbsp;|&nbsp; <strong>Difficulty:</strong> {{ $('Parse Mock Question JSON').item.json.difficulty }} &nbsp;|&nbsp; <strong>Your accuracy so far:</strong> {{ $('Parse Mock Question JSON').item.json.subjectAccuracySoFar }}%</p>\n\n<h3>⏱️ Timer: {{ $('Parse Mock Question JSON').item.json.timerMinutes }} minute(s) - start now!</h3>\n\n<h3>Question:</h3>\n<p>{{ $('Parse Mock Question JSON').item.json.question }}</p>\n\n<ul>\n<li>A) {{ $('Parse Mock Question JSON').item.json.options.A }}</li>\n<li>B){{ $('Parse Mock Question JSON').item.json.options.B }}</li>\n<li>C){{ $('Parse Mock Question JSON').item.json.options.C }}</li>\n<li>D) {{ $('Parse Mock Question JSON').item.json.options.D }}</li>\n</ul>\n\n<p><strong>Reply to this email with just the letter (A/B/C/D)</strong> — the answer key follows in a separate email shortly after.</p>\n\n<p style='color:#888;font-size:12px;'>Question ID: {{ $('Create Question in Notion').item.json.id }}</p>",
+        "options": {}
+      },
+      "id": "b967ed65-f79d-42e6-9f95-1eb144199ba2",
+      "name": "Send Question via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        96
+      ],
+      "webhookId": "d738513a-ea44-4fd9-8c58-a73c1731064c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "45c9d899-532f-4277-8138-644d75f37ec7",
+      "name": "Wait (Timer Duration)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2144,
+        96
+      ],
+      "webhookId": "5509cff3-a09d-44e5-8920-e2a4ee90a261"
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "Answer Key",
+        "message": "=({{ $('Parse Mock Question JSON').item.json.correct_option }})\n\n\n-{{ $('Parse Mock Question JSON').item.json.explanation }}",
+        "options": {}
+      },
+      "id": "f1bcfebb-9c7c-420d-b426-29a9ece0caa8",
+      "name": "Send Answer Key via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2368,
+        96
+      ],
+      "webhookId": "e9927e7b-78b6-4a90-bb9a-fde0f59623b5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "5:00 Second"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "is:unread subject:(Re: NDA Mock Test)"
+        },
+        "options": {}
+      },
+      "id": "88a39b8c-32d1-407d-9fee-0338d2559da4",
+      "name": "Watch for Answer Replies",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2368,
+        288
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract letter answer + question ID from reply email\nconst email = $input.first().json;\nconst body = (email.snippet || email.text || '').toString();\nconst subject = email.subject || email.Subject || '';\n\nconst answerMatch = body.match(/\\b[ABCD]\\b/i);\nconst userAnswer = answerMatch ? answerMatch[0].toUpperCase() : null;\n\n// Try to pull subject name out of the original subject line: \"NDA Mock Test [Math] - ...\"\nconst subjectTagMatch = subject.match(/\\[(.*?)\\]/);\nconst subjectTag = subjectTagMatch ? subjectTagMatch[1] : 'Unknown';\n\nreturn {\n  userAnswer,\n  subjectTag,\n  rawSubjectLine: subject,\n  receivedAt: new Date().toISOString()\n};"
+      },
+      "id": "0c4c2719-2132-4bed-9db8-b440d5d09248",
+      "name": "Parse Answer from Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-806a-957f-d8da40855ebc",
+          "mode": "list",
+          "cachedResultName": "NDA_Test_Log_Notion_v2.csv",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd8436806a957fd8da40855ebc"
+        },
+        "limit": 1,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Subject|select",
+              "condition": "equals",
+              "selectValue": "={{ $json.subjectTag }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e9115000-9329-4572-b947-cb7e5f9b363a",
+      "name": "Find Matching Pending Test",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        2816,
+        192
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compare user answer to correct answer stored in matched Notion page\nconst matched = $input.first().json;\nconst userAnswer = $('Parse Answer from Reply').item.json.userAnswer;\nconst questionIdText = matched.properties?.QuestionID?.rich_text?.[0]?.plain_text || '';\n\nreturn {\n  notionPageId: matched.id,\n  userAnswer,\n  questionPageId: questionIdText,\n  subject: matched.properties?.Subject?.select?.name || 'Unknown'\n};"
+      },
+      "id": "3ab31243-4086-47db-8ffe-36c90095811b",
+      "name": "Prepare Answer Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "get",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Find Matching Pending Test').item.json.url }}",
+          "mode": "url"
+        }
+      },
+      "id": "b144dda4-6947-40ac-8a42-ae592c013ec6",
+      "name": "Get Original Question Page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        3264,
+        192
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const correctAnswer = $input.first().json.properties?.Answer?.select?.name || 'A';\nconst userAnswer = $('Prepare Answer Check').item.json.userAnswer;\nconst isCorrect = userAnswer === correctAnswer;\n\nreturn {\n  notionPageId: $('Prepare Answer Check').item.json.notionPageId,\n  subject: $('Prepare Answer Check').item.json.subject,\n  userAnswer,\n  correctAnswer,\n  isCorrect,\n  status: isCorrect ? 'Correct' : 'Incorrect'\n};"
+      },
+      "id": "66792361-122f-4b70-9682-5a27cf714925",
+      "name": "Grade Answer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3488,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Get Original Question Page').item.json.url }}",
+          "__regex": "(?:https|http)://(?:www\\.notion\\.(?:so|com)|app\\.notion\\.com)/(?:p/)?(?:[a-z0-9-]{2,}/)?(?:[a-zA-Z0-9_-]{1,}-)?([0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12})"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Subject|select",
+              "selectValue": "={{ $('Find Matching Pending Test').item.json.property_subject }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8797592d-f661-4668-a0d7-6f632dce55dd",
+      "name": "Update Test Log with Result",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        3712,
+        192
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-81e3-99f6-e8afe65bcbea",
+          "mode": "list",
+          "cachedResultName": "NDA_Performance_Record_Notion",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd843681e399f6e8afe65bcbea"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Name|title",
+              "title": "={{ $now.format('yyyy-MM-dd HH:mm') }}"
+            },
+            {
+              "key": "Subject|rich_text",
+              "textContent": "={{ $json.property_subject }}"
+            },
+            {
+              "key": "Status|rich_text",
+              "textContent": "={{ $json.property_status }}"
+            },
+            {
+              "key": "Date|date",
+              "date": "={{ $now.format('yyyy-MM-dd') }}",
+              "timezone": "Asia/Calcutta"
+            },
+            {
+              "key": "Day_Of_Week|rich_text",
+              "textContent": "={{ $json.property_day_of_week }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d362f67d-dcbc-4154-8a42-c7be8d08d449",
+      "name": "Log Performance Record",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        3936,
+        192
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "id": "bdf6d391-18d5-47ce-a8be-743bcc020b53",
+      "name": "Weekly Review Trigger (Sunday 6PM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-81e3-99f6-e8afe65bcbea",
+          "mode": "list",
+          "cachedResultName": "NDA_Performance_Record_Notion",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd843681e399f6e8afe65bcbea"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "e7192c0a-b978-4ea2-82a5-f92573752cbc",
+      "name": "Fetch All Performance Records",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        512
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-8154-9916-d9966329a65b",
+          "mode": "list",
+          "cachedResultName": "NDA_Study_Plan_Notion_v2",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd843681549916d9966329a65b"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Date|date",
+              "condition": "equals",
+              "date": "={{ $json['Day of month'] }}{{ $json.Month }}{{ $json.Year }}"
+            },
+            {
+              "key": "Day_Of_Week|select",
+              "condition": "equals",
+              "selectValue": "={{ $json['Day of week'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "73b198ea-a285-43e7-b55e-9de517c7d1ae",
+      "name": "Fetch Current Study Plan",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        704
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "9748e253-79b9-4868-a412-b71f73bb78e6",
+      "name": "Merge Weekly Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---- WEEKLY ANALYSIS + SPACED REPETITION ----\nconst perfRecords = $(\"Fetch All Performance Records\").all().map(i => i.json);\nconst studyPlanRecords = $(\"Fetch Current Study Plan\").all().map(i => i.json);\n\nconst focusRecords = $(\"Fetch Recent Focus Log\").all().map(i => i.json);\nconst caRecords = $(\"Fetch Recent Current Affairs\").all().map(i => i.json);\n\nconst totalFocusMinutes = focusRecords.reduce((sum, r) => sum + (r.properties?.Minutes?.number || 0), 0);\n\nconst hourTotals = {};\nfocusRecords.forEach(r => {\n  const hour = r.properties?.SessionHour?.rich_text?.[0]?.plain_text || 'Unknown';\n  hourTotals[hour] = (hourTotals[hour] || 0) + (r.properties?.Minutes?.number || 0);\n});\nconst bestStudyHour = Object.entries(hourTotals).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';\n\nconst currentAffairsCount = caRecords.length;\n\n\nconst subjectStats = {};\nperfRecords.forEach(rec => {\n  const subject = rec.properties?.Subject?.select?.name || 'Unknown';\n  const status = rec.properties?.Status?.select?.name || 'Incorrect';\n  if (!subjectStats[subject]) subjectStats[subject] = { correct: 0, total: 0 };\n  subjectStats[subject].total++;\n  if (status === 'Correct') subjectStats[subject].correct++;\n});\n\nconst analysis = {};\nObject.keys(subjectStats).forEach(s => {\n  const stat = subjectStats[s];\n  analysis[s] = {\n    accuracy: ((stat.correct / stat.total) * 100).toFixed(1),\n    correct: stat.correct,\n    total: stat.total\n  };\n});\n\nconst weakAreas = Object.entries(analysis)\n  .filter(([_, s]) => parseFloat(s.accuracy) < 60)\n  .map(([subject]) => subject);\n\nconst strongAreas = Object.entries(analysis)\n  .filter(([_, s]) => parseFloat(s.accuracy) >= 80)\n  .map(([subject]) => subject);\n\nconst overallAccuracy = perfRecords.length > 0\n  ? ((perfRecords.filter(r => r.properties?.Status?.select?.name === 'Correct').length / perfRecords.length) * 100).toFixed(1)\n  : '0';\n\n// Build updated study plan priorities (for each topic, decide new priority + spaced repetition interval)\nconst updates = studyPlanRecords.map(topic => {\n  const subject = topic.properties?.Subject?.select?.name || 'General';\n  const isWeak = weakAreas.includes(subject);\n  const isStrong = strongAreas.includes(subject);\n\n  let priority = 'NORMAL';\n  let reviewInDays = 7;\n  if (isWeak) { priority = 'HIGH'; reviewInDays = 1; }\n  else if (isStrong) { priority = 'LOW'; reviewInDays = 14; }\n\n  const nextReview = new Date();\n  nextReview.setDate(nextReview.getDate() + reviewInDays);\n\n  return {\n    pageId: topic.id,\n    subject,\n    priority,\n    nextReviewDate: nextReview.toISOString().split('T')[0]\n  };\n});\n\nreturn {\n  analysis,\n  weakAreas,\n  strongAreas,\n  overallAccuracy,\n  totalTests: perfRecords.length,\n  studyPlanUpdates: updates,\n  totalFocusMinutes,\n  bestStudyHour,\n  currentAffairsCount\n};"
+      },
+      "id": "2af8378f-4326-4595-a494-ceced5cb50cc",
+      "name": "Weekly Analysis + Spaced Repetition",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "studyPlanUpdates",
+        "options": {}
+      },
+      "id": "70c94562-eda3-4260-a080-2704756c111c",
+      "name": "Split Out Study Plan Updates",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3ac8ebcd-8436-80ae-aa85-c3f12f977ce0",
+          "mode": "list",
+          "cachedResultName": "study_plan.csv",
+          "cachedResultUrl": "https://app.notion.com/p/3ac8ebcd843680aeaa85c3f12f977ce0"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Priority|select",
+              "selectValue": "={{ $json.priority }}"
+            },
+            {
+              "key": "Deadline|date",
+              "date": "={{ $json.nextReviewDate }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "={{ $('Merge Weekly Data 3').item.json.property_status }}"
+            },
+            {
+              "key": "Subject|title",
+              "title": "={{ $('Merge Weekly Data 3').item.json.property_subject }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b14708bb-e894-4a05-8fe7-a9aea29e7fcf",
+      "name": "Update Study Plan Priority",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        896
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "= {{ $now.format('dd MMM yyyy') }}",
+        "emailType": "text",
+        "message": "=Your Weekly Performance\n------------------------\n\nOverall Accuracy: {{ $('Weekly Analysis + Spaced Repetition').item.json.overallAccuracy }}%\nTests Completed: {{ $('Weekly Analysis + Spaced Repetition').item.json.totalTests }}\n\nSubject Breakdown:\n{{ Object.entries($('Weekly Analysis + Spaced Repetition').item.json.analysis).map(([subject, stats]) => '- ' + subject + ': ' + stats.accuracy + '% (' + stats.correct + '/' + stats.total + ')').join('\\n') }}\n\n{{ $('Weekly Analysis + Spaced Repetition').item.json.weakAreas.length > 0 ? '⚠️ Weak Areas (now HIGH priority, daily review):\\n' + $('Weekly Analysis + Spaced Repetition').item.json.weakAreas.map(a => '- ' + a).join('\\n') : '✅ No weak areas this week!' }}\n\n{{ $('Weekly Analysis + Spaced Repetition').item.json.strongAreas.length > 0 ? '💪 Strong Areas (spaced out to bi-weekly review):\\n' + $('Weekly Analysis + Spaced Repetition').item.json.strongAreas.map(a => '- ' + a).join('\\n') : '' }}\n\n🔹 Focus Time This Week:\nTotal study time logged: {{ $('Weekly Analysis + Spaced Repetition').item.json.totalFocusMinutes }} minutes\nMost productive hour: {{ $('Weekly Analysis + Spaced Repetition').item.json.bestStudyHour }}\n\n📰 Current Affairs:\n{{ $('Weekly Analysis + Spaced Repetition').item.json.currentAffairsCount }} items logged this week.\n\nYour study plan in Notion has been auto-updated with new priorities and next review dates. Keep going! 🎯",
+        "options": {}
+      },
+      "id": "918775e8-59c4-4479-8f10-725ad5588ba2",
+      "name": "Send Weekly Digest Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        704
+      ],
+      "webhookId": "392ceff7-ad5f-4df3-a699-d85ba68481b0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            },
+            {}
+          ]
+        },
+        "filters": {
+          "q": "is:unread subject:(NDA Doubt)"
+        }
+      },
+      "id": "158bc2b4-d5bb-48bd-a0f6-fca9249151ef",
+      "name": "Watch for Doubt Emails",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1360
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pull the doubt text out of the incoming email\nconst email = $input.first().json;\nconst body = (email.text || email.snippet || '').toString();\nconst subjectLine = email.subject || email.Subject || '';\n\n// Strip the \"NDA Doubt:\" prefix the student is asked to use\nconst doubtText = (subjectLine.replace(/NDA Doubt:?/i, '').trim() + ' ' + body).trim();\n\nconst stopwords = new Set(['the','is','a','an','of','to','in','on','for','and','or','what','how','why','does','do','i','my','me','it','this','that','with','are','was','were','can','you','please','help','not','understand']);\n\nconst keywords = doubtText\n  .toLowerCase()\n  .replace(/[^a-z0-9\\s]/g, ' ')\n  .split(/\\s+/)\n  .filter(w => w.length > 2 && !stopwords.has(w));\n\nreturn {\n  doubtText,\n  keywords,\n  rawSubjectLine: subjectLine,\n  receivedAt: new Date().toISOString()\n};"
+      },
+      "id": "5535c89f-8f06-4294-9a8f-4f0e2e013eda",
+      "name": "Extract Doubt Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        1360
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-81b1-a57f-c626eea9fbde",
+          "mode": "list",
+          "cachedResultName": "NDA_Questions_Bank_Notion",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd843681b1a57fc626eea9fbde"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "VideoLink|url",
+              "condition": "equals"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6d090965-a3ec-4aa6-b7fe-a0bdfc9b0abd",
+      "name": "Fetch All Questions For Doubt",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        1360
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Score every question in the bank against the student's doubt keywords\nconst doubtKeywords = $('Extract Doubt Text').item.json.keywords;\nconst questions = $input.all().map(i => i.json);\n\nfunction scoreQuestion(q) {\n  const props = q.properties || {};\n  const qText = (props.Question?.title?.[0]?.plain_text || '').toLowerCase();\n  const subject = (props.Subject?.select?.name || '').toLowerCase();\n  const explanation = (props.Explanation?.rich_text?.[0]?.plain_text || '').toLowerCase();\n  const combined = qText + ' ' + subject + ' ' + explanation;\n  let score = 0;\n  doubtKeywords.forEach(k => { if (combined.includes(k)) score++; });\n  return score;\n}\n\nlet best = null;\nlet bestScore = 0;\nquestions.forEach(q => {\n  const s = scoreQuestion(q);\n  if (s > bestScore) { bestScore = s; best = q; }\n});\n\n// Require at least 2 overlapping keywords before we trust the match\nconst matchFound = best !== null && bestScore >= 2;\n\nif (!matchFound) {\n  return { matchFound: false, bestScore };\n}\n\nconst props = best.properties || {};\nreturn {\n  matchFound: true,\n  bestScore,\n  subject: props.Subject?.select?.name || 'General',\n  matchedQuestion: props.Question?.title?.[0]?.plain_text || '',\n  explanation: props.Explanation?.rich_text?.[0]?.plain_text || 'No explanation available.',\n  videoLink: props.VideoLink?.url || ''\n};"
+      },
+      "id": "911c7b27-5131-4a9d-890f-31dca850f98b",
+      "name": "Match Best Question",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        1360
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "match-found-cond",
+              "leftValue": "={{ $json.matchFound }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "6ee3a80f-3fb7-400b-9edb-ea28d3fd88d1",
+      "name": "Check Match Confidence",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        1360
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "=Re: NDA Doubt - {{ $json.subject }}",
+        "message": "=<h2>Here's an explanation for your doubt</h2>\n<p><strong>Subject:</strong> {{ $json.subject }}</p>\n<p><strong>Closest matching question in your question bank:</strong><br>{{ $json.matchedQuestion }}</p>\n<p><strong>Explanation:</strong><br>{{ $json.explanation }}</p>\n{{ $json.videoLink ? '<p><a href=\"' + $json.videoLink + '\">\\ud83d\\udcfa Watch explanation video</a></p>' : '' }}\n<p style='color:#888;font-size:12px;'>Reply with another \"NDA Doubt:\" email any time.</p>",
+        "options": {}
+      },
+      "id": "f00a3520-ff97-4b6c-a802-a83aad71d511",
+      "name": "Send Explanation Reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        1264
+      ],
+      "webhookId": "99e479b8-d13a-4150-8f27-05af08b0929c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a58ebcd-8436-802f-8b6c-d487b797727f",
+          "mode": "list",
+          "cachedResultName": "NDA Study Plan ",
+          "cachedResultUrl": "https://app.notion.com/p/3a58ebcd8436802f8b6cd487b797727f"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "=Subject|select",
+              "condition": "equals",
+              "selectValue": "={{ $json.subject }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d7038f75-1c46-4420-aaa5-3e3c719b59b6",
+      "name": "Fetch Study Plan for Subject",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        1264
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": []
+        },
+        "options": {}
+      },
+      "id": "71821842-63bf-4381-a5bc-5c41b5872657",
+      "name": "Reinforce Study Plan Priority",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        1264
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "=Re: NDA Doubt - couldn't find a match",
+        "message": "=<h2>Couldn't find a close match in your question bank</h2>\n<p>I looked through your Questions database but didn't find anything close enough to confidently answer this one.</p>\n<p><strong>What you asked:</strong><br>{{ $('Extract Doubt Text').item.json.doubtText }}</p>\n<p>Try resending with the subject name and a bit more specific wording (e.g. \"NDA Doubt: Trigonometry - sign convention for angles above 90 degrees\"), or add a related question + explanation to the Questions DB so future doubts on this topic get matched.</p>",
+        "options": {}
+      },
+      "id": "47074a6f-a582-4e00-be4b-1d4a23ebc88d",
+      "name": "Send Fallback Reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        1456
+      ],
+      "webhookId": "cc2530f2-8fe1-4f89-92b9-deb28e37e17d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "2b61b0c3-bbed-4808-ac36-69ce086fea33",
+      "name": "Daily Current Affairs Trigger 7AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1792
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node - Parse Daily Current Affairs text into structured JSON\n\nconst input = $input.first().json;\n\n// Auto-detect which field holds the text (adjust priority order if needed)\nconst inputText =\n  input.text ||\n  input.output ||\n  input.content ||\n  input.message?.content ||\n  input.data ||\n  (typeof input === 'string' ? input : null);\n\nif (!inputText || typeof inputText !== 'string') {\n  throw new Error(\n    'Could not find a valid text field to parse. Available keys: ' +\n    Object.keys(input).join(', ')\n  );\n}\n\nconst lines = inputText.split('\\n');\n\nlet currentCategory = null;\nlet items = [];\nlet currentItem = null;\nlet stage = null; // 'headline' | 'summary' | 'relevance'\nlet quickRevisionPoints = [];\nlet inQuickRevision = false;\nlet dateLine = '';\n\nconst categoryHeadings = [\n  'NATIONAL',\n  'INTERNATIONAL',\n  'ECONOMY AND BUSINESS',\n  'SCIENCE AND TECHNOLOGY',\n  'SPORTS',\n  'AWARDS AND APPOINTMENTS',\n  'ENVIRONMENT AND DEFENCE',\n  'OBITUARIES',\n  'QUICK REVISION POINTS'\n];\n\nfor (let rawLine of lines) {\n  const line = rawLine.trim();\n\n  if (!line) continue; // skip blank lines\n\n  // Capture the date line\n  if (line.startsWith('DAILY CURRENT AFFAIRS')) {\n    dateLine = line.replace('DAILY CURRENT AFFAIRS - ', '').trim();\n    continue;\n  }\n\n  // Detect QUICK REVISION POINTS section\n  if (line === 'QUICK REVISION POINTS') {\n    inQuickRevision = true;\n    currentCategory = null;\n    continue;\n  }\n\n  // Detect category headings\n  if (categoryHeadings.includes(line) && line !== 'QUICK REVISION POINTS') {\n    currentCategory = line;\n    inQuickRevision = false;\n    continue;\n  }\n\n  // Handle Quick Revision Points\n  if (inQuickRevision) {\n    if (/^\\d+\\.$/.test(line)) {\n      continue; // number-only line, skip\n    }\n    quickRevisionPoints.push(line);\n    continue;\n  }\n\n  // Detect numbered item start (e.g., \"1.\")\n  if (/^\\d+\\.$/.test(line)) {\n    if (currentItem) {\n      items.push(currentItem);\n    }\n    currentItem = {\n      category: currentCategory,\n      headline: '',\n      summary: '',\n      relevance: ''\n    };\n    stage = 'headline';\n    continue;\n  }\n\n  if (!currentItem) continue;\n\n  // Detect Relevance line\n  if (line.startsWith('Relevance:')) {\n    currentItem.relevance = line.replace('Relevance:', '').trim();\n    stage = 'done';\n    continue;\n  }\n\n  // Fill headline or summary based on stage\n  if (stage === 'headline') {\n    currentItem.headline = line;\n    stage = 'summary';\n  } else if (stage === 'summary') {\n    currentItem.summary = currentItem.summary\n      ? currentItem.summary + ' ' + line\n      : line;\n  }\n}\n\n// push last item if exists\nif (currentItem) {\n  items.push(currentItem);\n}\n\nreturn [{\n  json: {\n    date: dateLine,\n    totalItems: items.length,\n    items: items,\n    quickRevisionPoints: quickRevisionPoints\n  }\n}];"
+      },
+      "id": "f6e07d63-c35f-423c-bc2e-492e19055347",
+      "name": "Parse AI Current Affairs Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        1792
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "=📰 NDA Current Affairs Brief - {{ $json.date }}",
+        "message": "={{ \n(function() {\n  const items = $json.items || [];\n  const quickRevisionPoints = $json.quickRevisionPoints || [];\n  const date = $json.date || '';\n\n  const grouped = {};\n  const categoryOrder = [];\n\n  for (const item of items) {\n    const cat = item.category || 'OTHER';\n    if (!grouped[cat]) {\n      grouped[cat] = [];\n      categoryOrder.push(cat);\n    }\n    grouped[cat].push(item);\n  }\n\n  let html = '<h2>Today\\'s NDA-Relevant Current Affairs</h2>';\n  if (date) {\n    html += '<p style=\"color:#666;font-size:13px;\">' + date + '</p>';\n  }\n\n  for (const category of categoryOrder) {\n    html += '<h3>' + category + '</h3><ol>';\n    for (const item of grouped[category]) {\n      html += '<li style=\"margin-bottom:14px;\">' +\n                '<strong>' + item.headline + '</strong><br>' +\n                item.summary + '<br>' +\n                '<em style=\"color:#555;\">Relevance: ' + item.relevance + '</em>' +\n              '</li>';\n    }\n    html += '</ol>';\n  }\n\n  if (quickRevisionPoints.length > 0) {\n    html += '<h3>Quick Revision Points</h3><ol>';\n    for (const point of quickRevisionPoints) {\n      html += '<li style=\"margin-bottom:8px;\">' + point + '</li>';\n    }\n    html += '</ol>';\n  }\n\n  html += '<p style=\"color:#888;font-size:12px;\">Sourced from PIB Press Releases + The Hindu Science section (free RSS feeds).</p>';\n\n  return html;\n})()\n}}",
+        "options": {}
+      },
+      "id": "6056328b-685d-4652-9674-a4df6b5a17b3",
+      "name": "Send Daily Current Affairs Brief",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        1696
+      ],
+      "webhookId": "15f0760b-7c7e-4723-a4dc-56dcd4abd508",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "options": {}
+      },
+      "id": "c4ca703d-f7c0-4c0f-9b5f-9be3d54fb96a",
+      "name": "Split Out Current Affairs Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        800,
+        1888
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3ac8ebcd-8436-809a-8e7f-c306eb45ba56",
+          "mode": "list",
+          "cachedResultName": "current_affairs_notion_template.csv",
+          "cachedResultUrl": "https://app.notion.com/p/3ac8ebcd8436809a8e7fc306eb45ba56"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Headline|rich_text"
+            },
+            {
+              "key": "Date|date",
+              "date": "={{ $('Daily Current Affairs Trigger 7AM').item.json['Day of month'] }}{{ $('Daily Current Affairs Trigger 7AM').item.json.Month }}{{ $('Daily Current Affairs Trigger 7AM').item.json.Year }}",
+              "timezone": "Asia/Calcutta"
+            },
+            {
+              "key": "Headline|rich_text",
+              "textContent": "={{ $json.headline }}"
+            },
+            {
+              "key": "Summary|rich_text",
+              "textContent": "={{ $json.summary }}"
+            },
+            {
+              "key": "Relevance|rich_text",
+              "textContent": "={{ $json.relevance }}"
+            },
+            {
+              "key": "Category|title",
+              "title": "={{ $json.category }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9a2aad92-1ecc-45ff-a971-2a5e82f127a1",
+      "name": "Log Current Affairs to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        1888
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            },
+            {
+              "triggerAtHour": 12
+            },
+            {
+              "triggerAtHour": 14
+            },
+            {
+              "triggerAtHour": 16
+            },
+            {
+              "triggerAtHour": 18
+            },
+            {
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "id": "43778d37-ee81-40ec-b7b9-bcdea315130e",
+      "name": "Focus Check-in Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        2336
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "tiwaridev88745@gmail.com",
+        "subject": "NDA Focus Check-in",
+        "message": "=<h2>Quick check-in</h2>\n<p>How many minutes did you just study, and which subject?</p>\n<p>Reply to this email in the format: <strong>45 Math</strong></p>",
+        "options": {}
+      },
+      "id": "ff0789b7-fba5-4394-9990-5662f2d01417",
+      "name": "Send Focus Check-in Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        2336
+      ],
+      "webhookId": "0261eea8-245e-4d6a-8b57-3eb931f2700d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "is:unread subject:(Re: NDA Focus Check-in)"
+        },
+        "options": {}
+      },
+      "id": "bc3c65ed-1057-4811-aa49-8b49a1f3e340",
+      "name": "Watch for Focus Replies",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        2560
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qzv34flNi9QaFDwj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract minutes + subject from a focus check-in reply, e.g. \"45 Math\"\nconst email = $input.first().json;\nconst body = (email.text || email.snippet || '').toString();\n\nconst match = body.match(/(\\d{1,3})\\s*(?:min(?:ute)?s?)?\\s*([A-Za-z]+)/i);\nconst minutes = match ? parseInt(match[1], 10) : 0;\nconst subjectRaw = match ? match[2] : 'General';\nconst subject = subjectRaw.charAt(0).toUpperCase() + subjectRaw.slice(1).toLowerCase();\n\nconst now = new Date();\nconst sessionHour = now.getHours().toString().padStart(2, '0') + ':00';\n\nreturn {\n  minutes,\n  subject,\n  sessionHour,\n  date: now.toISOString().split('T')[0]\n};"
+      },
+      "id": "dbda0069-a8a7-4d41-8c39-d61a9ba5abf8",
+      "name": "Parse Focus Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-8126-a6cb-fe6cb2555018",
+          "mode": "list",
+          "cachedResultName": "NDA_Focus_Log_Notion",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd84368126a6cbfe6cb2555018"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "=Name|title",
+              "title": "=Focus - {{ $json.subject }} - {{ $json.date }}"
+            },
+            {
+              "key": "=Date|date",
+              "date": "={{ $json.date }}"
+            },
+            {
+              "key": "=Minutes|number",
+              "numberValue": "={{ $json.minutes }}"
+            },
+            {
+              "key": "=SessionHour|rich_text",
+              "textContent": "={{ $json.sessionHour }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bcd88d00-4200-449b-bea6-a79ec8befd79",
+      "name": "Log Focus Session to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        2560
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-8126-a6cb-fe6cb2555018",
+          "mode": "list",
+          "cachedResultName": "NDA_Focus_Log_Notion",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd84368126a6cbfe6cb2555018"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Date|date",
+              "condition": "on_or_after",
+              "date": "={{ $now.minus({ days: 7 }).format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "37a3569f-8d6b-4649-96c0-52fde9d046e9",
+      "name": "Fetch Recent Focus Log",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        880
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3ac8ebcd-8436-809a-8e7f-c306eb45ba56",
+          "mode": "list",
+          "cachedResultName": "current_affairs_notion_template.csv",
+          "cachedResultUrl": "https://app.notion.com/p/3ac8ebcd8436809a8e7fc306eb45ba56"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Date|date",
+              "condition": "on_or_after",
+              "date": "={{ $now.minus({ days: 7 }).format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "49d85ebc-88dc-43ef-a5a6-dbfd953312f1",
+      "name": "Fetch Recent Current Affairs",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        1040
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "24db1158-d8c2-4845-997a-7752167e73e4",
+      "name": "Merge Weekly Data 2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        704
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c45bbad7-9c63-40c1-91f3-6424e8d7f82a",
+      "name": "Merge Weekly Data 3",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-8154-9916-d9966329a65b",
+          "mode": "list",
+          "cachedResultName": "NDA_Study_Plan_Notion_v2",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd843681549916d9966329a65b"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Date|date",
+              "condition": "equals",
+              "date": "={{ $now.format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0a39c4db-4505-4666-b44d-0871ba6086bf",
+      "name": "Fetch Today's Study Plan",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        192
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseNDAQuestion(rawOutput) {\n  let cleaned = String(rawOutput).trim();\n\n  // Strip accidental code fences\n  cleaned = cleaned.replace(/^```(?:json)?\\s*/i, \"\").replace(/```\\s*$/i, \"\").trim();\n\n  // Fallback: extract first {...} block if extra text sneaks in\n  if (!cleaned.startsWith(\"{\")) {\n    const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n    if (match) cleaned = match[0];\n  }\n\n  let data;\n  try {\n    data = JSON.parse(cleaned);\n  } catch (err) {\n    throw new Error(`Failed to parse NDA question JSON: ${err.message}\\nRaw output: ${rawOutput}`);\n  }\n\n  const requiredFields = [\"subject\", \"topic\", \"difficulty\", \"question\", \"options\", \"correct_option\", \"explanation\"];\n  for (const field of requiredFields) {\n    if (!(field in data)) {\n      throw new Error(`Missing required field: ${field}`);\n    }\n  }\n\n  const optionKeys = [\"A\", \"B\", \"C\", \"D\"];\n  for (const key of optionKeys) {\n    if (!(key in data.options)) {\n      throw new Error(`Missing option: ${key}`);\n    }\n  }\n\n  if (!optionKeys.includes(data.correct_option)) {\n    throw new Error(`Invalid correct_option: ${data.correct_option}`);\n  }\n\n  return data;\n}\n\n// n8n entry point — must return an array of { json: {...} } objects\nconst rawOutput = $input.first().json.output ?? $input.first().json.text ?? $input.first().json.content;\n\nconst parsed = parseNDAQuestion(rawOutput);\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "id": "bae79ede-ba66-4154-9ba8-0f1d4bc982a6",
+      "name": "Parse Mock Question JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-81b1-a57f-c626eea9fbde",
+          "mode": "list",
+          "cachedResultName": "NDA_Questions_Bank_Notion",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd843681b1a57fc626eea9fbde"
+        },
+        "title": "={{ $json.question }}",
+        "simple": false,
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Subject|select",
+              "selectValue": "={{ $json.subject }}"
+            },
+            {
+              "key": "OptionA|rich_text",
+              "textContent": "={{ $json.options.A }}"
+            },
+            {
+              "key": "OptionB|rich_text",
+              "textContent": "= {{ $json.options.B }}"
+            },
+            {
+              "key": "OptionC|rich_text",
+              "textContent": "={{ $json.options.C }}"
+            },
+            {
+              "key": "OptionD|rich_text",
+              "textContent": "={{ $json.options.D }}"
+            },
+            {
+              "key": "Answer|select",
+              "selectValue": "={{ $json.options.C }}"
+            },
+            {
+              "key": "Explanation|rich_text",
+              "textContent": "={{ $json.explanation }}"
+            },
+            {
+              "key": "Question|title",
+              "title": "={{ $json.question }}"
+            }
+          ]
+        },
+        "options": {
+          "iconType": "emoji"
+        }
+      },
+      "id": "02b2d726-f6e6-4960-9ecb-bbf6559fcf68",
+      "name": "Create Question in Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        96
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3a98ebcd-8436-806a-957f-d8da40855ebc",
+          "mode": "list",
+          "cachedResultName": "NDA_Test_Log_Notion_v2.csv",
+          "cachedResultUrl": "https://app.notion.com/p/3a98ebcd8436806a957fd8da40855ebc"
+        },
+        "title": "=Test - {{ $('Parse Mock Question JSON').item.json.subject }} - {{ $now.format('dd MMM yyyy') }}",
+        "simple": false,
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Date|date",
+              "date": "={{ $json.created_time }}"
+            },
+            {
+              "key": "Day_Of_Week|select",
+              "selectValue": "={{ $now.format('cccc') }}"
+            },
+            {
+              "key": "Subject|select",
+              "selectValue": "={{ $('Parse Mock Question JSON').item.json.subject }}"
+            },
+            {
+              "key": "Difficulty|select",
+              "selectValue": "={{ $('Parse Mock Question JSON').item.json.difficulty }}"
+            },
+            {
+              "key": "QuestionID|rich_text",
+              "textContent": "={{ $('Parse Mock Question JSON').item.json.question }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aa4dd3d3-e4d8-48bd-b2a3-ce73c0b64391",
+      "name": "Create Test Log Entry",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        96
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "VV8C5JC4xCYxSZjI",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert NDA (National Defence Academy) exam mock-question generator with access to a Notion tool connected to the student's \"My Study Planner\" database.\n\nQuery the \"My Study Planner\" database for the entry matching today's date: {{ $('Fetch Performance History').item.json.name }}. If no entry exists for today, silently fall back to the most recent past entry and never mention the fallback in your output.\n\nFrom that entry, extract the subject(s) studied, the specific topic(s)/sub-topic(s), and any status/notes fields indicating recent performance (accuracy %, \"Weak\"/\"Strong\" tags, pending-revision flags). Use performance data only to calibrate difficulty — never reference it in the output. If multiple subjects appear, pick ONE: prefer the one testing real conceptual understanding over pure trivia, or the one flagged as weaker/needing revision if such a flag exists.\n\nSet difficulty from recent accuracy in the chosen subject: below ~50% → Easy, ~50-75% → Medium, above ~75% → Hard, no data available → Medium.\n\nWrite exactly one multiple-choice question strictly within the NDA syllabus for the chosen subject:\n- Mathematics: Algebra, Trigonometry, Geometry, basic Calculus, Matrices & Determinants, Vectors, Statistics & Probability (NDA Paper 1 level) — test application/concept, not formula recall.\n- Physics: Mechanics, Heat, Light, Sound, Electricity & Magnetism, Motion, Gravitation (10+2 NDA level).\n- Chemistry: Physical/Organic/Inorganic basics — Periodic Table, Chemical Bonding, Acids/Bases/Salts, Carbon Compounds (10+2 NDA level).\n- General Science: Basic Biology (human body, plants, health) and everyday scientific phenomena per NDA GAT syllabus.\n- History: Indian History (Ancient/Medieval/Modern), Freedom Movement, World History — focus on cause-effect/significance over dates.\n- Geography: Physical, Indian, and World Geography per NDA syllabus.\n- English: Grammar, vocabulary (synonyms/antonyms/idioms), comprehension, sentence correction (NDA GAT level).\n\nQuestion design rules: prefer conceptual understanding over memorized trivia where possible; exactly 4 options labeled A-D; exactly one correct option; wrong options must be plausible distractors based on common misconceptions, not obviously wrong; keep question and options short enough to read comfortably on a phone; base the question only on real, standard NDA-syllabus content — never fabricate facts, formulas, or figures.\n\nRespond with ONLY a valid JSON object — no markdown, no headings, no code fences, no preamble, no commentary outside the JSON. The entire response must be directly parseable with JSON.parse(). Respond in exactly this shape:\n\n{\n  \"subject\": \"string\",\n  \"topic\": \"string\",\n  \"difficulty\": \"Easy | Medium | Hard\",\n  \"question\": \"string\",\n  \"options\": {\n    \"A\": \"string\",\n    \"B\": \"string\",\n    \"C\": \"string\",\n    \"D\": \"string\"\n  },\n  \"correct_option\": \"A | B | C | D\",\n  \"explanation\": \"string\"\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        96
+      ],
+      "id": "9c3776f8-ab9a-4022-95ca-98c4363de512",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        320
+      ],
+      "id": "9793a75e-cf15-4278-8761-9ad0c2437a12",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior Current Affairs Analyst specializing in exam preparation for NDA (National Defence Academy) aspirants.\n\nMANDATORY FIRST STEP: Before writing anything, you MUST call your search tool multiple times to find real news from the last 24-48 hours relative to {{ $json['Readable date'] }}. Run separate searches for each category below (e.g., \"India defence news today\", \"DRDO ISRO news this week\", \"India sports news today\", \"RBI economy news today\", \"international news today\"). Do NOT answer from your own memory or training knowledge under any circumstance — anything you recall without searching is very likely outdated by months or years and is unacceptable for this task. If you do not call the search tool before answering, your response is invalid.\n\nAfter gathering search results, verify each item you plan to include by checking: does the search result explicitly mention a date within the last 1-2 days of {{ $json['Readable date'] }}? If you cannot confirm the date, discard that item and search again for a verified replacement.\n\nYour task: Generate today's current affairs briefing, dated {{ $json['Readable date'] }}, focused specifically on topics with high probability of appearing in the NDA written exam (General Knowledge section) and SSB interview.\n\nSTRICT REQUIREMENTS:\n1. Cover ONLY real, verified news from the last 24 hours, confirmed via your search tool. Do not invent, guess, or use outdated information.\n2. Include news across these exact categories, in this exact order:\n   - National\n   - International\n   - Economy and Business\n   - Science and Technology\n   - Sports\n   - Awards and Appointments\n   - Environment and Defence\n3. For EVERY category, include at least 1-2 news items (never leave a category empty unless your search genuinely returns zero notable news that day).\n4. For EACH news item, you must provide exactly these three parts, never combined into one paragraph:\n   - Headline: one clear line, maximum 15 words\n   - Summary: 2-3 full sentences in simple language, explaining what happened, who is involved, and why it matters\n   - Relevance: one line explaining specifically why this matters for NDA aspirants (e.g., GK section, defence current affairs, SSB group discussion topics)\n5. Prioritize Defence and National Security news heavily, since this is for NDA aspirants — always run a dedicated search for the Environment and Defence category covering military exercises, defence deals, border developments, new equipment inductions, or armed forces announcements from today or yesterday.\n6. End with a \"Quick Revision Points\" section containing exactly 5-6 short one-line facts, written for rapid last-minute recall before an exam. These facts must also come only from today's search results, not from memory.\n\nOUTPUT FORMAT (follow exactly, do not deviate):\n\nDAILY CURRENT AFFAIRS - {{ $json['Readable date'] }}\n\nNATIONAL\n1.\n[Headline]\n[Summary]\nRelevance: [text]\n\n2.\n[Headline]\n[Summary]\nRelevance: [text]\n\nINTERNATIONAL\n(same pattern)\n\nECONOMY AND BUSINESS\n(same pattern)\n\nSCIENCE AND TECHNOLOGY\n(same pattern)\n\nSPORTS\n(same pattern)\n\nAWARDS AND APPOINTMENTS\n(same pattern)\n\nENVIRONMENT AND DEFENCE\n(same pattern)\n\nQUICK REVISION POINTS\n1. [one-line fact]\n2. [one-line fact]\n3. [one-line fact]\n4. [one-line fact]\n5. [one-line fact]\n\nCRITICAL RULES:\n- Never merge Headline, Summary, and Relevance into a single line — they must always be on separate lines as shown.\n- Never skip a category unless your search tool genuinely returns no news for it that day.\n- Never use markdown symbols like ** or # — plain text only.\n- Total items across all categories should be between 12 and 18.\n- Do not add any introduction, disclaimer, or closing remarks outside this structure.\n- FINAL SELF-CHECK before responding: review every single item and confirm it came from an actual search result with a verifiable recent date. If any item is not backed by a search result, remove it.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        1680
+      ],
+      "id": "f4a65889-12ba-4835-9b8d-108ff75d6095",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        1920
+      ],
+      "id": "e7982614-fd77-460e-b8d5-aec9fb0a215f",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"api_key\": \"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\",\n  \"query\": \"={{ $fromAI('search_query', 'India defence and current affairs news today', 'string') }}\",\n  \"topic\": \"news\",\n  \"days\": 1,\n  \"max_results\": 10\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n     \"api_key\": \"tvly-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\",\n     \"query\": \"...\",\n     \"topic\": \"news\",\n     \"days\": 1,\n     \"max_results\": 10\n   }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        368,
+        1952
+      ],
+      "id": "92288792-0152-435b-a428-ced4f44dc05b",
+      "name": "HTTP Request",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Test Trigger 8AM": {
+      "main": [
+        [
+          {
+            "node": "Fetch Performance History",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Today's Study Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Performance History": {
+      "main": [
+        [
+          {
+            "node": "Merge Performance + Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Performance + Questions": {
+      "main": [
+        [
+          {
+            "node": "Analyze Performance And Todays Topics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Question via Gmail": {
+      "main": [
+        [
+          {
+            "node": "Wait (Timer Duration)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait (Timer Duration)": {
+      "main": [
+        [
+          {
+            "node": "Send Answer Key via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch for Answer Replies": {
+      "main": [
+        [
+          {
+            "node": "Parse Answer from Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Answer from Reply": {
+      "main": [
+        [
+          {
+            "node": "Find Matching Pending Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Matching Pending Test": {
+      "main": [
+        [
+          {
+            "node": "Prepare Answer Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Answer Check": {
+      "main": [
+        [
+          {
+            "node": "Get Original Question Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Original Question Page": {
+      "main": [
+        [
+          {
+            "node": "Grade Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grade Answer": {
+      "main": [
+        [
+          {
+            "node": "Update Test Log with Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Test Log with Result": {
+      "main": [
+        [
+          {
+            "node": "Log Performance Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Review Trigger (Sunday 6PM)": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Performance Records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Current Study Plan",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Recent Focus Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Recent Current Affairs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Performance Records": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Current Study Plan": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Weekly Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly Data 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Analysis + Spaced Repetition": {
+      "main": [
+        [
+          {
+            "node": "Split Out Study Plan Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Weekly Digest Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Study Plan Updates": {
+      "main": [
+        [
+          {
+            "node": "Update Study Plan Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch for Doubt Emails": {
+      "main": [
+        [
+          {
+            "node": "Extract Doubt Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Doubt Text": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Questions For Doubt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Questions For Doubt": {
+      "main": [
+        [
+          {
+            "node": "Match Best Question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Best Question": {
+      "main": [
+        [
+          {
+            "node": "Check Match Confidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Match Confidence": {
+      "main": [
+        [
+          {
+            "node": "Send Explanation Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Fallback Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Explanation Reply": {
+      "main": [
+        [
+          {
+            "node": "Fetch Study Plan for Subject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Study Plan for Subject": {
+      "main": [
+        [
+          {
+            "node": "Reinforce Study Plan Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Current Affairs Trigger 7AM": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Current Affairs Items": {
+      "main": [
+        [
+          {
+            "node": "Log Current Affairs to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Focus Check-in Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Focus Check-in Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch for Focus Replies": {
+      "main": [
+        [
+          {
+            "node": "Parse Focus Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Focus Reply": {
+      "main": [
+        [
+          {
+            "node": "Log Focus Session to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recent Focus Log": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly Data 2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Weekly Data 2": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly Data 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recent Current Affairs": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly Data 3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Weekly Data 3": {
+      "main": [
+        [
+          {
+            "node": "Weekly Analysis + Spaced Repetition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Current Affairs Response": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Current Affairs Brief",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out Current Affairs Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Today's Study Plan": {
+      "main": [
+        [
+          {
+            "node": "Merge Performance + Questions",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Analyze Performance And Todays Topics": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Mock Question JSON": {
+      "main": [
+        [
+          {
+            "node": "Create Question in Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Question in Notion": {
+      "main": [
+        [
+          {
+            "node": "Create Test Log Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Test Log Entry": {
+      "main": [
+        [
+          {
+            "node": "Send Question via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Mock Question JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Answer Key via Gmail": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Current Affairs Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "468203c8-a3bf-470a-b66f-780084084ba0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0939c1b8e1e0708b46ffe401e5f9de59670d9b3277056b057e9c9f6a6ff5f37a"
+  },
+  "nodeGroups": [],
+  "id": "hcZsU38gCeb7JXRi",
+  "tags": []
+}
